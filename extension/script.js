@@ -33,6 +33,18 @@ $(document).ready(function () {
         }
     }
 
+    function diagnose(images, selected, viewAll) {
+        if(viewAll.length == 1 && selected.length == 1 && images.length > 0) return true;
+        var error = $('<div id="gplusmaximizeError"><h2>Something went wrong.</h2>The G+ Maximize Extension couldn\'t be initialized. Please open a ticket in the <a href="https://github.com/mixer2/G-Maximize-Chrome-Extension/issues" target="_blank">issue tracker</a>.</div>');
+        var close = $('<span id="gplusmaximizeErrorClose">Close</span>');
+        close.appendTo(error);
+        error.appendTo('body');
+        close.on('click', function() {
+            error.remove();
+        });
+        return false;
+    }
+
     function scaleImage() {
         var imgs = maximize.children('img');
         imgs.each(function () {
@@ -222,6 +234,17 @@ $(document).ready(function () {
     });
 
     function turnLightsOff() {
+        var viewAll = $(selectors["viewAll"]);
+        if(viewAll.length) clickElement(viewAll);
+        images = $(selectors['images']);
+        var selected = false;
+
+        if(images.length < 1) images = selected = $(selectors['singleImage']);
+        else selected = images.filter(selectors['selected']);
+
+        //diagnose (maybe they changed the name of a class)
+        if(!diagnose(images, selected, viewAll)) return true;
+
         initSizingType();
         $(window).on("resize", scaleImage);
         maximize = $('<div id="gplusmaximize" tabindex="0" class="loading"></div>');
@@ -237,11 +260,8 @@ $(document).ready(function () {
 
         $('body').append(maximize);
 
-        var viewAll = $(selectors["viewAll"]);
-        clickElement(viewAll);
-        images = $(selectors['images']);
-        if(images.length < 1) images = $(selectors['singleImage']).addClass('gplusmaximizeSelected');
-        else images.filter(selectors['selected']).addClass('gplusmaximizeSelected');
+        selected.addClass('gplusmaximizeSelected');
+
         updateImage();
         addFlashClass('showKeys');
 
