@@ -80,14 +80,14 @@
 }
 
 #gplusmaximizeBarKeyDown {
-    top:118px;
+    top:140px;
 }
 #gplusmaximizeBarKeyLeft {
-    top:68px;
+    top:90px;
     left:-98px;
 }
 #gplusmaximizeBarKeyRight {
-    top:68px;
+    top:90px;
     left:98px;
 }
 #gplusmaximizeBarKeyFrame span:before {

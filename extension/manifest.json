@@ -1,6 +1,6 @@
 {
   "name": "G+ Maximize",
-  "version": "1.1",
+  "version": "1.2",
   "description": "Enlarge photos in the Google Plus Lightbox.",
   "update_url": "https://github.com/mixer2/G-Maximize-Chrome-Extension/raw/master/updates.xml",
   "content_scripts": [
@@ -9,5 +9,7 @@
       "js": ["jquery.min.js","jquery.fullscreen.js","script.js"],
       "css": ["main.css"]
     }
-  ]
+  ],
+  "background_page": "background.html",
+  "options_page": "options.html"
 }
