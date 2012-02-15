@@ -18,6 +18,7 @@
     font-family: 'Open Sans', sans-serif;
     font-size:16px;
     color:#fff;
+    -webkit-user-select: none;
 }
 #gplusmaximizeError {
     position: fixed;
@@ -57,8 +58,10 @@
 
 #gplusmaximizeBarKeyFrame {
     position:absolute;
-    right: 200px;
-    top: 40px;
+    width: 300px;
+    height: 240px;
+    right: 0px;
+    top: 0px;
     z-index:1101;
     text-shadow:#999 0em 0em 4px;
 }
@@ -77,18 +80,22 @@
     text-align:center;
     opacity:0;
     -webkit-transition: all 0.5s ease-out;
+    left:50%;
+    margin-left:-40px;
+    margin-top:40px;
+    cursor:pointer;
 }
 
-#gplusmaximizeBarKeyDown {
+#gplusmaximizeBarKeyFrame #gplusmaximizeBarKeyDown {
     top:140px;
 }
-#gplusmaximizeBarKeyLeft {
+#gplusmaximizeBarKeyFrame #gplusmaximizeBarKeyLeft {
     top:90px;
-    left:-98px;
+    margin-left:-138px;
 }
-#gplusmaximizeBarKeyRight {
+#gplusmaximizeBarKeyFrame #gplusmaximizeBarKeyRight {
     top:90px;
-    left:98px;
+    margin-left:58px;
 }
 #gplusmaximizeBarKeyFrame span:before {
     position:absolute;
