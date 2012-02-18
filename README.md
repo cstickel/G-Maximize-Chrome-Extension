@@ -7,7 +7,7 @@ Enhances the native Google+ lightbox with a fullscreen mode.
 
 How to use.
 -----------
-* Install the Extension.
+* [Install the Extension.](https://github.com/mixer2/G-Maximize-Chrome-Extension/raw/master/gplusmaximize.crx "G+ Maximize Chrome Extension")
 * Go to Google+.
 * Click on an image to open the Google+ lightbox.
 * Push arrow up key to activate the plugin.
