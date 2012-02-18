@@ -6,9 +6,16 @@
 </head>
 <body>
 <h1>G+ Maximize</h1>
-<span class="label">Auto maximize (experimental)</span><span id="toggleAutoinit" data-setting="autoinit" class="switch"></span>
-<span class="label">Try to get Fullscreen</span><span id="toggleAutoFullscreen" data-setting="autofullscreen" class="switch"></span>
+<span class="label">Auto maximize (experimental)</span><span id="toggleAutoinit" data-setting="autoinit" class="switch" tabindex="0"></span>
+<span class="label">Try to get fullscreen</span><span id="toggleAutoFullscreen" data-setting="autofullscreen" class="switch" tabindex="0"></span>
+<span class="label">Show arrows</span><span id="toggleShowArrows" data-setting="showarrows" class="switch" tabindex="0"></span>
+<span class="label">Show keys</span><span id="toggleShowKeys" data-setting="showkeys" class="switch" tabindex="0"></span>
+<span class="label">Show bar</span><span id="toggleShowBar" data-setting="showbar" class="switch" tabindex="0"></span>
+<span class="label">Scaling method</span>
+    <select id="sizingType" data-setting="scaling">
+    </select>
 <script src="jquery.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="jquery.sparkbox-select.js" type="text/javascript" charset="utf-8"></script>
 <script src="options.js" type="text/javascript" charset="utf-8"></script>
 </body>
 </html>

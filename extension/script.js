@@ -6,6 +6,7 @@ $(document).ready(function () {
         count = false,
         sizingType = false,
         autoinitTimeout = false,
+        hideNative = false,
         autoinitCounter = 0,
         selectors = {
             "viewAll":'.CNBrCd div[role=button]',
@@ -22,18 +23,29 @@ $(document).ready(function () {
         settings = response;
 
         function refreshSettingBindings() {
-
             function autoinit() {
+                $(selectors['images']).remove();
+                if (!hideNative) hideNative = $('<div id="gplusmaximizeHideNative"></div>').appendTo('body');
                 autoinitCounter = 0;
                 if (autoinitTimeout) window.clearTimeout(autoinitTimeout);
                 autoinitTimeout = window.setTimeout(checkAutoinit, 500);
             }
 
             //Anyone knows better solution to detect when native lightbox opens?
-            if (settings.autoinit) {
-                $(document).on('focusin.gplusmaximizeAutoinit', selectors['frame'] + ':not(.gplusmaximizeAvoidAutoinit)', autoinit);
-            } else {
-                $(document).off('focusin.gplusmaximizeAutoinit');
+            $(document).off('focusin.gplusmaximizeAutoinit');
+            if (settings.autoinit) $(document).on('focusin.gplusmaximizeAutoinit', selectors['frame'] + ':not(.gplusmaximizeAvoidAutoinit)', autoinit);
+        }
+
+        function refreshSettings() {
+            if (maximize) {
+                if (settings.showarrows) maximize.removeClass('noArrows');
+                else maximize.addClass('noArrows');
+                if (settings.showkeys) maximize.removeClass('noKeys');
+                else maximize.addClass('noKeys');
+                if (settings.showbar) maximize.removeClass('noBar');
+                else maximize.addClass('noBar');
+
+                scaleImage();
             }
         }
 
@@ -44,10 +56,14 @@ $(document).ready(function () {
                 switch (request.action) {
                     case "updateSettings":
                         settings = request.settings
+                        refreshSettings();
                         refreshSettingBindings();
                         break;
+                    case "setSizingType":
+                        setSizingType(request.scaling, request.description);
+                        break;
                 }
-        });
+            });
 
         function checkAutoinit() {
             if ($(selectors['frame']).length) {
@@ -85,6 +101,10 @@ $(document).ready(function () {
             var close = $('<span id="gplusmaximizeErrorClose">Close</span>');
             close.appendTo(error);
             error.appendTo('body');
+            if (hideNative) {
+                hideNative.remove();
+                hideNative = false;
+            }
             close.on('click', function () {
                 error.remove();
             });
@@ -132,7 +152,7 @@ $(document).ready(function () {
                     }
                 }
 
-                switch (getSizingType()) {
+                switch (settings['scaling']) {
                     case "fitLimited":
                         calcFit();
                         limit();
@@ -159,47 +179,17 @@ $(document).ready(function () {
             });
         }
 
-        function initSizingType(force) {
-            if (!localStorage["gplusmaximizeSizingType"] || force) setSizingType("fit");
-            return getSizingType();
+        function toggleSizingType() {
+            chrome.extension.sendRequest({"action":"toggelSizingType"}, function (response) {
+                setSizingType(response['scaling'], response["description"]);
+            });
         }
 
-        function toggleSizingType() {
-            var current = getSizingType();
-            switch (current) {
-                case "fit":
-                    setSizingType("fitLimited");
-                    break;
-                case "fitLimited":
-                    setSizingType("cover");
-                    break;
-                case "cover":
-                    setSizingType("coverLimited");
-                    break;
-                case "coverLimited":
-                    setSizingType("fit");
-                    break;
-                default:
-                    initSizingType(true);
-            }
+        function setSizingType(scaling, description) {
+            settings['scaling'] = scaling;
+            sizingType.html(description);
             addFlashClass('showSizingType');
             scaleImage();
-        }
-
-        function getSizingType() {
-            return localStorage["gplusmaximizeSizingType"] || initSizingType();
-        }
-
-        function setSizingType(type) {
-            var sizingTypes = {
-                "fit":"Fit to screen",
-                "fitLimited":"Limited fit to screen",
-                "cover":"Cover screen",
-                "coverLimited":"Limited cover screen"
-            }
-
-            localStorage["gplusmaximizeSizingType"] = type;
-            sizingType.html(sizingTypes[type]);
         }
 
         function getUrl(url, size) {
@@ -245,7 +235,7 @@ $(document).ready(function () {
 
         $(document).on('mousewheel', function (e) {
             if (maximize) {
-                if(e.originalEvent.wheelDeltaY > 0) {
+                if (e.originalEvent.wheelDeltaY > 0) {
                     updateImage(1);
                 } else {
                     updateImage(-1);
@@ -317,7 +307,6 @@ $(document).ready(function () {
                 return false;
             }
 
-            initSizingType();
             $(window).on("resize", scaleImage);
             maximize = $('<div id="gplusmaximize" tabindex="0" class="loading"></div>');
             var bar = $('<div id="gplusmaximizeBar"></div>').appendTo(maximize);
@@ -329,43 +318,65 @@ $(document).ready(function () {
             keyFrame.append('<span id="gplusmaximizeBarKeyRight">Next image</span>');
             keyFrame.append('<span id="gplusmaximizeBarKeyDown">Close</span>');
             sizingType = $('<div id="gplusmaximizeSizingType"></div>').appendTo(maximize);
+            var next = $('<span id="gplusmaximizeNext"></span>').appendTo(maximize);
+            var prev = $('<span id="gplusmaximizePrev"></span>').appendTo(maximize);
 
             $('body').append(maximize);
+            if (hideNative) {
+                hideNative.remove();
+                hideNative = false;
+            }
 
             selected.addClass('gplusmaximizeSelected');
 
             updateImage();
             addFlashClass('showKeys', 4000);
+            addFlashClass('showArrows', 2000);
 
-            if(settings['autofullscreen']) maximize.requestFullScreen();
+            if (settings['autofullscreen']) maximize.requestFullScreen();
             maximize.focus();
             maximize.blur(function () {
                 $(this).focus();
             });
+
+            refreshSettings();
+
             close.click(function () {
                 turnLightsOn();
             });
 
-            maximize.on('click', 'img.main', function() {
+            next.on('click', function () {
+                updateImage(1);
+                addFlashClass('showArrows', 1000);
+            });
+            prev.on('click', function () {
+                updateImage(-1);
+                addFlashClass('showArrows', 1000);
+            });
+            maximize.on('mouseover', function () {
+                addFlashClass('showAll', 1000);
+            });
+
+
+            maximize.on('click', 'img.main', function () {
                 updateImage(1);
             });
-            maximize.on('click', '#gplusmaximizeBarKeyUp', function() {
+            maximize.on('click', '#gplusmaximizeBarKeyUp', function () {
                 toggleSizingType();
                 addFlashClass('showKeyUp', 500);
             });
-            maximize.on('click', '#gplusmaximizeBarKeyDown', function() {
+            maximize.on('click', '#gplusmaximizeBarKeyDown', function () {
                 turnLightsOn();
                 addFlashClass('showKeyDown', 500);
             });
-            maximize.on('click', '#gplusmaximizeBarKeyLeft', function() {
+            maximize.on('click', '#gplusmaximizeBarKeyLeft', function () {
                 updateImage(-1);
                 addFlashClass('showKeyLeft', 500);
             });
-            maximize.on('click', '#gplusmaximizeBarKeyRight', function() {
+            maximize.on('click', '#gplusmaximizeBarKeyRight', function () {
                 updateImage(1);
                 addFlashClass('showKeyRight', 500);
             });
-
             return true;
         }
 

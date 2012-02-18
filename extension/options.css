@@ -6,12 +6,16 @@
 }
 
 body {
-    width:268px;
+    width:382px;
     padding:8px 20px;
     font-family: "Open Sans",Arial, Helvetica;
     font-size:12px;
     color: #999;
     -webkit-user-select: none;
+}
+textarea, input {
+    color: #999;
+    font-family: "Open Sans",Arial, Helvetica;
 }
 h1 {
     font-weight:bold;
@@ -63,4 +67,68 @@ div.annotation:before, span.label.needReload:after {
 }
 div.annotation {
     margin-top:16px;
+}
+.sb-custom {
+    position:relative;
+    width: 178px;
+    display: inline-block;
+    height:20px;
+}
+.sb-custom select {
+    display:none;
+}
+.sb-custom input {
+    height:20px;
+    line-height:20px;
+    padding:4px;
+    padding-right:16px;
+    width:158px;
+    display:inline-block;
+    border:0px;
+    margin:0px;
+    -webkit-user-select: none;
+    background-color:transparent;
+    background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAAAAXNSR0IArs4c6QAAAAZiS0dEAAAAAAAA+UO7fwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wCEBQvNzJ/5MUAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAApElEQVQoz92SsQ0CMQxFXxAtIyHRI1HQ3wZIPyxAAQtcKClhh9uAFagpqChYAIRpcii6RIeQqEiV/Pj5W7bh/49rL3VdV8D+Q/zGe78CGLSKpANw7oGuwLp9vEHnHMC4B5xLemRgdL0AuwLUSDrG5DkYPxYFsEqhDIyud2CaSEtJt27cMGuzc5hZE0I4ASNg23UrOiYlT4CZpOdXAzYzzOz3m/MCqNknhA1lICMAAAAASUVORK5CYII=);
+    background-repeat:no-repeat;
+    background-position:160px center;
+}
+span.switch:focus, .sb-custom input:focus {
+    outline:none;
+    box-shadow: 0px 0px 5px #9cafd2;
+}
+.sb-dropdown {
+    display:none;
+    position:absolute;
+    list-style-type:none;
+    padding: 0px;
+    margin: 0px;
+    border-radius:4px;
+    border:1px solid #d7d7d7;
+    background: -webkit-linear-gradient(bottom, #f8f8f8, #fefefe);
+    box-shadow: 0px 0px 5px #bbb;
+    width:178px;
+}
+.sb-dropdown:after {
+    content:"";
+    display:block;
+    position:absolute;
+    top:100%;
+    left:0px;
+    height:16px;
+    width:178px;
+}
+.sb-dropdown a {
+    color: #999;
+    font-family: "Open Sans",Arial, Helvetica;
+    display:block;
+    text-decoration: none;
+    padding:4px;
+    -webkit-transition: all 0.5s ease-out;
+}
+.sb-dropdown li.selected a {
+    background-color: #fff;
+    color: #666;
+}
+sb-dropdown a:hover {
+    color: #666;
 }

@@ -1,4 +1,11 @@
 $(document).ready(function () {
+    var sizingTypes = {
+        "fit":"Fit screen",
+        "fitLimited":"Fit screen (don't enlarge)",
+        "cover":"Fill Screen",
+        "coverLimited":"Fill Screen (don't enlarge)"
+    };
+
     chrome.extension.onRequest.addListener(
         function (request, sender, sendResponse) {
             switch (request.action) {
@@ -18,18 +25,44 @@ $(document).ready(function () {
                         }
                     });
                     break;
+                case "getSizingTypes":
+                    sendResponse(sizingTypes);
+                    break;
+                case "toggelSizingType":
+                    var settings = JSON.parse(localStorage["gplusmaximizeSettings"]);
+                    var response = {};
+                    switch (settings['scaling']) {
+                        case "fit":
+                            settings['scaling'] = "fitLimited";
+                            break;
+                        case "fitLimited":
+                            settings['scaling'] = "cover";
+                            break;
+                        case "cover":
+                            settings['scaling'] = "coverLimited";
+                            break;
+                        case "coverLimited":
+                            settings['scaling'] = "fit";
+                            break;
+                    }
+                    localStorage["gplusmaximizeSettings"] = JSON.stringify(settings);
+                    sendResponse({
+                        "scaling": settings['scaling'],
+                        "description": sizingTypes[settings['scaling']]
+                    });
+                    break;
             }
         });
 
-    chrome.windows.onFocusChanged.addListener(function() {
+    chrome.windows.onFocusChanged.addListener(function () {
         chrome.tabs.getSelected(null, function (tab) {
             localStorage["lastTabId"] = tab.id;
         });
     });
 
-    chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
-        if(changeInfo.status == 'complete') {
-            if(tab.url.indexOf('https://plus.google.com/') === 0) chrome.pageAction.show(tabId);
+    chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
+        if (changeInfo.status == 'complete') {
+            if (tab.url.indexOf('https://plus.google.com/') === 0) chrome.pageAction.show(tabId);
         }
     });
 
