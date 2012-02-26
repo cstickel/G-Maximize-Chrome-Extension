@@ -6,6 +6,19 @@ $(document).ready(function () {
         "coverLimited":"Fill Screen (don't enlarge)"
     };
 
+    var settings = $.extend({
+           "autoinit": false,
+           "autofullscreen": true,
+           "showarrows": true,
+           "showkeys": true,
+           "showbar": true,
+           "scaling": "fit",
+           "animations": true,
+           "transitions": true
+        },localStorage["gplusmaximizeSettings"] ? JSON.parse(localStorage["gplusmaximizeSettings"]) : {});
+
+    localStorage["gplusmaximizeSettings"] = JSON.stringify(settings);
+
     chrome.extension.onRequest.addListener(
         function (request, sender, sendResponse) {
             switch (request.action) {

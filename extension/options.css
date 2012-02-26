@@ -107,6 +107,7 @@ span.switch:focus, .sb-custom input:focus {
     background: -webkit-linear-gradient(bottom, #f8f8f8, #fefefe);
     box-shadow: 0px 0px 5px #bbb;
     width:178px;
+    z-index:10;
 }
 .sb-dropdown:after {
     content:"";

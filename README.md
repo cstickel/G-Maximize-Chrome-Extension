@@ -16,7 +16,8 @@ How to use.
 In fullscreen mode you have the following hotkeys to control the plugin.
 
 * Arrow down or ESC: Leave fullscreen mode.
-* Arrow up: Toggle between scaling modes.
+* Arrow up: Toggle browser fullscreen.
+* S: Toggle between scaling modes.
 * Arrow left, mousewheel down: Switch to previous image.
 * Arrow right, space, mousewheel up: Switch to next image.
 * Page up: Jump 10 images forward.

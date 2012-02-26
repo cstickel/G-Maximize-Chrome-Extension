@@ -1,16 +1,21 @@
 $(document).ready(function () {
     var scaleTo = 'w' + screen.width + '-h' + screen.height,
+        imagesContainer = false,
         images = false,
         maximize = false,
         keyFrame = false,
         count = false,
+        nativeCount = false,
         sizingType = false,
         autoinitTimeout = false,
         hideNative = false,
+        preserveSelected = false,
         autoinitCounter = 0,
         selectors = {
             "viewAll":'.CNBrCd div[role=button]',
-            "images":'.U3zdn .s-W-mMnEh',
+            "imagesContainer": '.U3zdn .s-W-Oh',
+            "image": '.s-W-mMnEh',
+            "count": '.FktpOd b',
             "selected":".yaUgJc",
             "frame":'.cL8Mff',
             "singleImage":'.g7DSrf .photo-container.pUf9Gc',
@@ -22,10 +27,17 @@ $(document).ready(function () {
     chrome.extension.sendRequest({"action":"getSettings"}, function (response) {
         settings = response;
 
+        function removeHideNative() {
+            if (hideNative) {
+                hideNative.remove();
+                hideNative = false;
+            }
+        }
+
         function refreshSettingBindings() {
             function autoinit() {
-                $(selectors['images']).remove();
                 if (!hideNative) hideNative = $('<div id="gplusmaximizeHideNative"></div>').appendTo('body');
+
                 autoinitCounter = 0;
                 if (autoinitTimeout) window.clearTimeout(autoinitTimeout);
                 autoinitTimeout = window.setTimeout(checkAutoinit, 500);
@@ -44,7 +56,8 @@ $(document).ready(function () {
                 else maximize.addClass('noKeys');
                 if (settings.showbar) maximize.removeClass('noBar');
                 else maximize.addClass('noBar');
-
+                if (!settings.animations) maximize.removeClass('animations');
+                else maximize.addClass('animations');
                 scaleImage();
             }
         }
@@ -67,7 +80,7 @@ $(document).ready(function () {
 
         function checkAutoinit() {
             if ($(selectors['frame']).length) {
-                var lastTry = (autoinitCounter > 4);
+                var lastTry = (autoinitCounter > 10);
                 if (!turnLightsOff(!lastTry ? true : false) && !lastTry) {
                     autoinitTimeout = window.setTimeout(checkAutoinit, 500);
                     autoinitCounter++;
@@ -101,10 +114,7 @@ $(document).ready(function () {
             var close = $('<span id="gplusmaximizeErrorClose">Close</span>');
             close.appendTo(error);
             error.appendTo('body');
-            if (hideNative) {
-                hideNative.remove();
-                hideNative = false;
-            }
+            removeHideNative();
             close.on('click', function () {
                 error.remove();
             });
@@ -198,8 +208,23 @@ $(document).ready(function () {
             return before + size + "/" + after;
         }
 
+        function setSelectedImage(img) {
+            img.siblings('.gplusmaximizeSelected').removeClass('gplusmaximizeSelected');
+            img.addClass('gplusmaximizeSelected');
+            preserveSelected = img.find('img').attr('src');
+        }
+
+        function getSelectedImage() {
+            var selected = images.filter('.gplusmaximizeSelected');
+            if(!selected.length && preserveSelected) {
+                selected = images.find('img[src="'+preserveSelected+'"]').closest(selectors['image']);
+                if(selected.length) setSelectedImage(selected);
+            }
+            return selected;
+        }
+
         function updateImage(steps) {
-            var current = images.filter('.gplusmaximizeSelected');
+            var current = getSelectedImage();
             var index = images.index(current);
             var next = false;
 
@@ -210,24 +235,23 @@ $(document).ready(function () {
                 else if (index < 0) index = images.length - 1;
 
                 next = images.eq(index);
-                current.removeClass('gplusmaximizeSelected');
-                next.addClass('gplusmaximizeSelected');
+                setSelectedImage(next);
             } else next = current;
 
-            if (next.is(current) && maximize.children('img').length) return false;
-
-            maximize.children('img').removeClass('active').fadeOut(500, function () {
+            count.html((index + 1) + ' of ' + images.length);
+            if (!next.length || (next.is(current) && maximize.children('img').length)) return false;
+            maximize.children('img').removeClass('active').fadeOut(settings.transitions ? 500 : 0, function () {
                 $(this).remove();
             });
             var image = $('<img src="' + getUrl(next.find('img').attr('src'), scaleTo) + '" class="active main" />').appendTo(maximize);
-            count.html((index + 1) + ' of ' + images.length);
+
             maximize.addClass('loading');
             addFlashClass('showBar');
 
             image.load(function () {
                 if ($(this).hasClass('active')) {
                     scaleImage($(this));
-                    $(this).fadeIn(1000);
+                    $(this).fadeIn(settings.transitions ? 1000 : 0);
                     maximize.removeClass('loading');
                 }
             });
@@ -261,6 +285,9 @@ $(document).ready(function () {
                     case 40:
                         $('#gplusmaximizeBarKeyDown').trigger('click');
                         break;
+                    case 83:
+                        toggleSizingType();
+                        break;
                 }
             } else {
                 switch (e.keyCode) {
@@ -269,6 +296,8 @@ $(document).ready(function () {
                         break;
                     case 40:
                         clickElement($(selectors['close']));
+                        $('#gplusmaximizeError').remove();
+                        removeHideNative();
                         break;
                 }
             }
@@ -293,16 +322,36 @@ $(document).ready(function () {
 
         function turnLightsOff(silent) {
             if (maximize) return true;
+            nativeCount = $('.FktpOd');
+            if(nativeCount.length < 1) return false;
+
+            function initImages(container) {
+                if(!container) container = $('.U3zdn .s-W-Oh');
+                images = container.children();
+                if(!selected) {
+                    if (images.length < 1) images = selected = $(selectors['singleImage']);
+                    else selected = images.filter(selectors['selected']);
+                }
+                if(maximize) updateImage();
+            }
+
+            imagesContainer = $(selectors['imagesContainer']);
+            var currentCount = imagesContainer.children().length;
+            $(selectors['frame']).off('DOMNodeInserted.gplusmaximizeAutoinit');
+            $(selectors['frame']).on('DOMNodeInserted.gplusmaximizeAutoinit', selectors['imagesContainer'], function() {
+               if($(this).children().length > currentCount) {
+                   currentCount = $(this).children().length;
+                   initImages($(this));
+               }
+            });
+
             var viewAll = $(selectors["viewAll"]);
             if (viewAll.length) clickElement(viewAll);
-            images = $(selectors['images']);
             var selected = false;
-
-            if (images.length < 1) images = selected = $(selectors['singleImage']);
-            else selected = images.filter(selectors['selected']);
+            initImages();
 
             //diagnose (maybe they changed the name of a class)
-            if (!(viewAll.length == 1 && selected.length == 1 && images.length > 0)) {
+            if (!(viewAll.length == 1)) {
                 if (!silent) showError();
                 return false;
             }
@@ -313,7 +362,7 @@ $(document).ready(function () {
             var close = $('<span id="gplusmaximizeClose">Close</span>').appendTo(bar);
             count = $('<span id="gplusmaximizeCount"></span>').appendTo(bar);
             keyFrame = $('<span id="gplusmaximizeBarKeyFrame"></span>').appendTo(maximize);
-            keyFrame.append('<span id="gplusmaximizeBarKeyUp">Toggle scaling</span>');
+            keyFrame.append('<span id="gplusmaximizeBarKeyUp">Toggle fullscreen</span>');
             keyFrame.append('<span id="gplusmaximizeBarKeyLeft">Previous image</span>');
             keyFrame.append('<span id="gplusmaximizeBarKeyRight">Next image</span>');
             keyFrame.append('<span id="gplusmaximizeBarKeyDown">Close</span>');
@@ -322,12 +371,9 @@ $(document).ready(function () {
             var prev = $('<span id="gplusmaximizePrev"></span>').appendTo(maximize);
 
             $('body').append(maximize);
-            if (hideNative) {
-                hideNative.remove();
-                hideNative = false;
-            }
+            removeHideNative();
 
-            selected.addClass('gplusmaximizeSelected');
+            setSelectedImage(selected);
 
             updateImage();
             addFlashClass('showKeys', 4000);
@@ -362,7 +408,10 @@ $(document).ready(function () {
                 updateImage(1);
             });
             maximize.on('click', '#gplusmaximizeBarKeyUp', function () {
-                toggleSizingType();
+                //toggle Fullscreen
+                if(screen.width <= window.innerWidth && screen.height <= window.innerHeight) window.fullScreenApi.cancelFullScreen();
+                else maximize.requestFullScreen();
+
                 addFlashClass('showKeyUp', 500);
             });
             maximize.on('click', '#gplusmaximizeBarKeyDown', function () {
@@ -381,14 +430,16 @@ $(document).ready(function () {
         }
 
         function turnLightsOn() {
-            clickElement($(images.filter('.gplusmaximizeSelected').get(0)));
+            clickElement(getSelectedImage());
             images.removeClass('gplusmaximizeSelected');
             window.fullScreenApi.cancelFullScreen();
-            maximize.fadeOut(400, function () {
+            removeHideNative();
+            maximize.fadeOut(settings.animations ? 400 : 0, function () {
                 $(this).remove();
                 $(selectors['frame']).addClass('gplusmaximizeAvoidAutoinit').focus();
             });
             $(window).off("resize", scaleImage);
+            $(selectors['frame']).off('DOMNodeInserted.gplusmaximizeAutoinit');
             maximize = false;
         }
     });

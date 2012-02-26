@@ -1,12 +1,5 @@
 $(document).ready(function () {
-    var settings = $.extend({
-       "autoinit": false,
-       "autofullscreen": true,
-       "showarrows": true,
-       "showkeys": true,
-       "showbar": true,
-       "scaling": "fit"
-    },localStorage["gplusmaximizeSettings"] ? JSON.parse(localStorage["gplusmaximizeSettings"]) : {});
+    var settings = JSON.parse(localStorage["gplusmaximizeSettings"]);
 
     function updateSettings() {
         localStorage["gplusmaximizeSettings"] = JSON.stringify(settings);
