@@ -290,6 +290,7 @@ $(document).ready(function () {
                         break;
                 }
             } else {
+                if($(document.activeElement).attr('contenteditable')) return true;
                 switch (e.keyCode) {
                     case 38:
                         if ($(selectors['frame']).length) turnLightsOff();
